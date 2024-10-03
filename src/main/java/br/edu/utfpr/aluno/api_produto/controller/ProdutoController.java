@@ -1,6 +1,8 @@
 package br.edu.utfpr.aluno.api_produto.controller;
 
 import br.edu.utfpr.aluno.api_produto.model.Produto;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -25,52 +27,57 @@ public class ProdutoController {
     // Lista de endpoints
 
     @GetMapping
-    public List<Produto> getAll(){
-        return this.produtos;
+    public ResponseEntity<List<Produto>> getAll(){
+        return ResponseEntity.ok(this.produtos);
     }
 
     @GetMapping(path = "/{id}")
-    public Produto getOne(@PathVariable(name = "id") Long idProduto){
+    public ResponseEntity<Produto> getOne(@PathVariable(name = "id") Long idProduto){
         Produto produtoEncontrado = this.produtos.stream()
                 .filter(produto -> produto.getId().equals(idProduto))
                 .findFirst()
                 .orElse(null);
-        return produtoEncontrado;
+
+        if (produtoEncontrado == null)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        else
+            return ResponseEntity.status(HttpStatus.OK).body(produtoEncontrado);
     }
 
     @PostMapping
-    public String addOne(@RequestBody Produto produto) {
+    public ResponseEntity<String> addOne(@RequestBody Produto produto) {
         if (produto.getDescription() == null || produto.getPrice() < 0){
-            return "Descrição ou Preço inválidos";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Descrição ou Preço inválidos");
         } else {
             this.produtos.add(produto);
-            return "Produto cadastrado com sucesso";
+            return ResponseEntity.status(HttpStatus.CREATED).body("Produto cadastrado com sucesso");
         }
     }
 
     @PutMapping(path="/{id}")
-    public void update(@PathVariable(name="id") Long idProduto, @RequestBody Produto produto) {
+    public ResponseEntity<String> update(@PathVariable(name="id") Long idProduto, @RequestBody Produto produto) {
         for (Produto p : this.produtos){
             if (p.getId().equals(idProduto)){
                 p.setDescription(produto.getDescription());
                 p.setQuantity(produto.getQuantity());
                 p.setPrice(produto.getPrice());
                 p.setCategory(produto.getCategory());
-                break;
+                return ResponseEntity.ok("Produto atualizado com sucesso.");
             }
         }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produto não encontrado.");
     }
 
     @DeleteMapping(path = "/{id}")
-    public String delete(@PathVariable(name="id") Long idProduto){
+    public ResponseEntity<String> delete(@PathVariable(name="id") Long idProduto){
         Produto produtoRemover = this.produtos.stream()
                 .filter(p->p.getId().equals(idProduto))
                 .findFirst()
                 .orElse(null);
         if (produtoRemover != null){
             this.produtos.remove(produtoRemover);
-            return "Produto removido com sucesso.";
+            return ResponseEntity.status(HttpStatus.OK).body("Produto removido com sucesso.");
         }
-        return "Produto não encontrado";
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produto não encontrado");
     }
 }
