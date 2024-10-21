@@ -1,11 +1,21 @@
 package br.edu.utfpr.aluno.api_produto.model;
 
+import jakarta.persistence.*;
+
+@Entity
 public class Produto {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "produto_seq")
+    @SequenceGenerator(name = "produto_seq", sequenceName = "produto_seq", allocationSize = 1)
     private Long id;
     private String description;
     private Integer quantity;
     private Double price;
     private String category;
+
+    public Produto(){
+
+    }
 
     public Produto(Long id, String description, Integer quantity, Double price, String category) {
         this.id = id;
